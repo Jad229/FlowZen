@@ -4,21 +4,23 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
-const query = async function (sql, params = []) {
+async function query(sql, params = []) {
     const result = await pool.query(sql, params)
     return result;
 }
 
-const transaction = async function (callback) {
-    const client = await pool.connect();
+async function transaction(callback) {
+    const connection = await pool.connect();
     try {
-        await client.query('BEGIN');
-        await callback(client);
-        await client.query('COMMIT');
+        await connection.query('BEGIN');
+        const result = await callback(connection);
+        await connection.query('COMMIT');
+        return result;
     } catch (error) {
-        await client.query('ROLLBACK');
+        await connection.query('ROLLBACK');
+        throw error;
     } finally {
-        client.release();
+        connection.release();
     }
 }
 
