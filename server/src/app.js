@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import apiRouter from './routes/index.js';
 
-
 const app = express();
 
 // Allow the frontend (running on a different origin/port) to call this API.
