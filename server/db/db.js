@@ -4,12 +4,12 @@ const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
-async function query(sql, params = []) {
+const query = async function (sql, params = []) {
     const result = await pool.query(sql, params)
     return result;
 }
 
-async function transaction(callback) {
+const transaction = async function (callback) {
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
@@ -22,4 +22,4 @@ async function transaction(callback) {
     }
 }
 
-export default { query };
+export { query, transaction };
