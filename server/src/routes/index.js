@@ -1,5 +1,4 @@
 import express from 'express';
-import { query, transaction } from '../../db/db.js';
 import { getBoards, getBoard, createBoard, deleteBoard } from './boards.js';
 
 const router = express.Router();

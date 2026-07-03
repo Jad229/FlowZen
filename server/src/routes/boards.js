@@ -1,3 +1,5 @@
+import { query, transaction } from '../../db/db.js';
+
 export const getBoards = async (req, res) => {
     try {
         const result = await query('SELECT * FROM boards')
