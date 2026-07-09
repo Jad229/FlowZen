@@ -1,5 +1,6 @@
 import express from 'express';
 import { getBoards, getBoard, createBoard, deleteBoard } from './boards.js';
+import { applyCommand } from '../services/commandService.js';
 
 const router = express.Router();
 
@@ -14,14 +15,21 @@ router.post('/boards', createBoard)
 router.post('/boards/:id/commands', async (req, res) => {
   const { id: boardId } = req.params
   const { type, payload } = req.body
-  try {
-    const board = await applyCommand(boardId, type, payload)
-    res.json({ message: 'Board command applied successfully' })
-  } catch (error) {
-    res.json({ message: 'Could not apply command', error })
+
+  if (!type || typeof type !== 'string') {
+    return res.status(400).json({ message: 'Command "type" is required and must be a string' })
+  }
+  if (payload == null || typeof payload !== 'object') {
+    return res.status(400).json({ message: 'Command "payload" is required and must be an object' })
   }
 
-
+  try {
+    const board = await applyCommand(boardId, type, payload)
+    res.json({ message: 'Board command applied successfully', board })
+  } catch (error) {
+    const status = error.status || 500
+    res.status(status).json({ message: 'Could not apply command', error: error.message })
+  }
 })
 router.delete('/boards/:id', deleteBoard)
 
