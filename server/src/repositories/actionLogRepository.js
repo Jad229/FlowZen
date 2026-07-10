@@ -47,8 +47,6 @@ export async function clearUndone(boardId, tx) {
   );
 }
 
-// --- Stubs used by future undo/redo. ---
-
 export async function latestActive(boardId, tx) {
   const result = await runQuery(
     tx,

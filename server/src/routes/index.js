@@ -1,6 +1,6 @@
 import express from 'express';
 import { getBoards, getBoard, createBoard, deleteBoard } from './boards.js';
-import { applyCommand } from '../services/commandService.js';
+import { applyCommand, undo, redo } from '../services/commandService.js';
 
 const router = express.Router();
 
@@ -31,6 +31,30 @@ router.post('/boards/:id/commands', async (req, res) => {
     res.status(status).json({ message: 'Could not apply command', error: error.message })
   }
 })
+router.post('/boards/:id/undo', async (req, res) => {
+  const { id: boardId } = req.params;
+
+  try {
+    const board = await undo(boardId);
+    res.json({ message: 'Undo applied successfully', board });
+  } catch (error) {
+    const status = error.status || 500;
+    res.status(status).json({ message: 'Could not undo', error: error.message });
+  }
+});
+
+router.post('/boards/:id/redo', async (req, res) => {
+  const { id: boardId } = req.params;
+
+  try {
+    const board = await redo(boardId);
+    res.json({ message: 'Redo applied successfully', board });
+  } catch (error) {
+    const status = error.status || 500;
+    res.status(status).json({ message: 'Could not redo', error: error.message });
+  }
+});
+
 router.delete('/boards/:id', deleteBoard)
 
 

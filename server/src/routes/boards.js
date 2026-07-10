@@ -1,4 +1,5 @@
 import { query, transaction } from '../../db/db.js';
+import { getBoardWithColumnsAndCards } from '../repositories/boardRepository.js';
 
 export const getBoards = async (req, res) => {
     try {
@@ -12,10 +13,13 @@ export const getBoards = async (req, res) => {
 export const getBoard = async (req, res) => {
     const { id } = req.params;
     try {
-        const result = await query('SELECT * FROM boards WHERE id = $1', [id])
-        res.json({ message: 'Board fetched successfully', board: result.rows[0] })
+        const board = await getBoardWithColumnsAndCards(id);
+        if (!board) {
+            return res.status(404).json({ message: 'Board not found' });
+        }
+        res.json({ message: 'Board fetched successfully', board });
     } catch (error) {
-        res.json({ message: 'An error occurred, could not fetch board', error })
+        res.status(500).json({ message: 'An error occurred, could not fetch board', error: error.message });
     }
 }
 
