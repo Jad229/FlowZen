@@ -141,11 +141,11 @@ npm run dev
 
 ## Status
 
-- [ ] Backend scaffold + schema migration
-- [ ] `GET /api/boards/:id`
-- [ ] Command handlers (add/delete/move card, rename/add column)
-- [ ] `POST /api/boards/:id/commands`
-- [ ] Undo / Redo endpoints
+- [X] Backend scaffold + schema migration
+- [X] `GET /api/boards/:id`
+- [X] Command handlers (add/delete/move card, rename/add column)
+- [X] `POST /api/boards/:id/commands`
+- [X] Undo / Redo endpoints
 - [ ] React board + drag-and-drop
 - [ ] Undo/Redo UI + keyboard shortcuts
 - [ ] Polish (toasts, animations, badge)
