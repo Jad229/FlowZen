@@ -1,8 +1,8 @@
 import Card from './Card';
 import { useDroppable } from '@dnd-kit/react'
-export default function Column({ title, cards }) {
-  const {ref} = useDroppable({
-    id: title,
+export default function Column({ id, title, cards }) {
+  const { ref } = useDroppable({
+    id,
   });
   return (
     <div ref={ref} className="column">
