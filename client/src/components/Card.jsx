@@ -1,17 +1,13 @@
-import { useDraggable } from '@dnd-kit/react';
+import { useDraggable } from "@dnd-kit/react";
 
-export default function Card({ title }) {
-
+export default function Card({ card }) {
   const { ref } = useDraggable({
-    id: 'draggable-card',
+    id: card.id,
   });
 
   return (
     <div className="card" ref={ref}>
-      <p className="card-title">{title}</p>
+      <p className="card-title">{card.title}</p>
     </div>
   );
 }
-
-
-

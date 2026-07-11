@@ -1,5 +1,5 @@
-import Card from './Card';
-import { useDroppable } from '@dnd-kit/react'
+import Card from "./Card";
+import { useDroppable } from "@dnd-kit/react";
 export default function Column({ id, title, cards }) {
   const { ref } = useDroppable({
     id,
@@ -12,7 +12,7 @@ export default function Column({ id, title, cards }) {
       </div>
       <div className="column-cards">
         {cards.map((card) => (
-          <Card key={card.id} title={card.title} />
+          <Card key={card.id} card={card} />
         ))}
       </div>
     </div>
