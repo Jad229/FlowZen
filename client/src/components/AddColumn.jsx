@@ -1,3 +1,3 @@
-export default function AddColumn() {
-  return <div>AddColumn</div>;
+export default function AddColumn({ onAddColumn }) {
+  return <div className="add-column" onClick={onAddColumn}>+</div>;
 }

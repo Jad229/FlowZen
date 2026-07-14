@@ -49,10 +49,40 @@ export const createBoard = async (req, res) => {
 
 export const deleteBoard = async (req, res) => {
     const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).json({ message: 'Board id is required' });
+    }
+
     try {
-        const result = await query('DELETE FROM boards WHERE id = $1', [id])
-        res.json({ message: 'Board deleted successfully', board: result.rows[0] })
+        const board = await transaction(async (tx) => {
+            await tx.query(
+                `DELETE FROM cards
+                 WHERE column_id IN (SELECT id FROM columns WHERE board_id = $1)`,
+                [id]
+            );
+            await tx.query('DELETE FROM columns WHERE board_id = $1', [id]);
+            // action_log rows cascade via ON DELETE CASCADE
+            const result = await tx.query(
+                'DELETE FROM boards WHERE id = $1 RETURNING *',
+                [id]
+            );
+
+            if (result.rowCount === 0) {
+                const err = new Error(`Board not found: ${id}`);
+                err.status = 404;
+                throw err;
+            }
+
+            return result.rows[0];
+        });
+
+        res.json({ message: 'Board deleted successfully', board });
     } catch (error) {
-        res.json({ message: 'An error occurred, could not delete board', error })
+        const status = error.status || 500;
+        res.status(status).json({
+            message: 'An error occurred, could not delete board',
+            error: error.message,
+        });
     }
 }

@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
 import Column from "./Column";
 import { DragDropProvider } from "@dnd-kit/react";
+import AddColumn from "./AddColumn";
+import Modal from "./Modal";
 
 export default function Board({ boardId }) {
   const [board, setBoard] = useState(null);
+  const [isAddColumnOpen, setIsAddColumnOpen] = useState(false);
+  const [columnTitle, setColumnTitle] = useState("");
+
 
   useEffect(() => {
     if (!boardId) return;
@@ -24,6 +29,39 @@ export default function Board({ boardId }) {
   }, [boardId]);
 
   if (!board) return <p>Loading board...</p>;
+
+  const closeAddColumn = () => {
+    setIsAddColumnOpen(false);
+    setColumnTitle("");
+  };
+
+  const handleAddColumn = async () => {
+    const title = columnTitle.trim();
+    if (!title) return;
+
+    const response = await fetch(`/api/boards/${boardId}/commands`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "ADD_COLUMN",
+        payload: { title, position: board.columns.length },
+      }),
+    });
+    const { board: updatedBoard } = await response.json();
+
+    setBoard(updatedBoard);
+    closeAddColumn();
+  };
+
+  async function sendCommand(type, payload) {
+    const response = await fetch(`/api/boards/${boardId}/commands`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, payload }),
+    });
+    const { board: updatedBoard } = await response.json();
+    setBoard(updatedBoard);
+  }
 
   return (
     <DragDropProvider
@@ -63,10 +101,33 @@ export default function Board({ boardId }) {
               id={column.id}
               title={column.title}
               cards={column.cards}
+              sendCommand={sendCommand}
             />
           ))}
+          <AddColumn onAddColumn={() => setIsAddColumnOpen(true)} />
         </div>
       </div>
+      <Modal
+        isOpen={isAddColumnOpen}
+        onClose={closeAddColumn}
+        title="Add column"
+        confirmLabel="Add column"
+        onConfirm={handleAddColumn}
+        isConfirmDisabled={!columnTitle.trim()}
+      >
+        <label className="modal-label" htmlFor="column-title">
+          Title
+        </label>
+        <input
+          id="column-title"
+          className="modal-input"
+          type="text"
+          placeholder="e.g. In Progress"
+          value={columnTitle}
+          onChange={(event) => setColumnTitle(event.target.value)}
+          autoFocus
+        />
+      </Modal>
     </DragDropProvider>
   );
 }
