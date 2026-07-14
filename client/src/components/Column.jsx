@@ -1,5 +1,6 @@
 import Card from "./Card";
 import { useDroppable } from "@dnd-kit/react";
+import { CollisionPriority } from "@dnd-kit/abstract";
 import AddCard from "./AddCard";
 import DeleteColumn from "./DeleteColumn";
 import Modal from "./Modal";
@@ -10,7 +11,10 @@ export default function Column({ id, title, cards, sendCommand }) {
   const [cardTitle, setCardTitle] = useState("");
   const [cardDescription, setCardDescription] = useState("");
   const { ref } = useDroppable({
-    id,
+    id: String(id),
+    type: "column",
+    accept: "card",
+    collisionPriority: CollisionPriority.Low,
   });
 
   async function handleAddCard() {
@@ -45,10 +49,12 @@ export default function Column({ id, title, cards, sendCommand }) {
         <span className="column-count">{cards.length}</span>
       </div>
       <div className="column-cards">
-        {cards.map((card) => (
+        {cards.map((card, index) => (
           <Card
             key={card.id}
             card={card}
+            columnId={id}
+            index={index}
             onDeleteCard={() => handleDeleteCard(card.id)}
           />
         ))}

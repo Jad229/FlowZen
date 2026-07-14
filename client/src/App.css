@@ -257,12 +257,18 @@
   border: 1px solid #323648;
   border-radius: 8px;
   padding: 0.75rem;
-  cursor: default;
-  transition: border-color 0.15s ease;
+  cursor: grab;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
 }
 
 .card:hover {
   border-color: #4a5068;
+}
+
+.card--dragging {
+  opacity: 0.55;
+  cursor: grabbing;
+  border-color: #5a6180;
 }
 
 .card-title {
