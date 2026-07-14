@@ -4,7 +4,6 @@ import { applyCommand, undo, redo } from '../services/commandService.js';
 
 const router = express.Router();
 
-// Placeholder root API route. Replace or extend with board/command/undo routes later.
 router.get('/', (req, res) => {
   res.json({ message: 'FlowZen API' });
 });

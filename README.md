@@ -1,4 +1,4 @@
-# FlowZen 
+# FlowZen
 
 ## A Collaborative Kanban Board — Persisted Multi-Level Undo/Redo
 
@@ -11,17 +11,18 @@ Instead of maintaining two in-memory undo/redo stacks, all history lives in a si
 > Active rows are always a contiguous prefix of `sequence_number`. Undone rows are always the remaining suffix.
 
 Which means:
+
 - **Undo** = find the active row with `MAX(sequence_number)`
 - **Redo** = find the undone row with `MIN(sequence_number)`
 
-No stack bookkeeping in application code — the table *is* the stack.
+No stack bookkeeping in application code — the table _is_ the stack.
 
 ## Tech Stack
 
 - **Frontend:** React (hooks) + drag-and-drop (`@dnd-kit` or hand-rolled HTML5 DnD)
 - **Backend:** Node.js + Express (REST API)
 - **Database:** PostgreSQL (JSONB) or SQLite (TEXT storing JSON)
-- **DB access:** Plain SQL driver (`pg` or `better-sqlite3`) — no ORM
+- **DB access:** Plain SQL driver `pg` — no ORM
 - **Styling:** CSS for drag/drop visual feedback
 
 ## Schema
@@ -61,27 +62,25 @@ CREATE TABLE action_log (
 );
 ```
 
-> **SQLite:** swap `SERIAL` → `INTEGER PRIMARY KEY AUTOINCREMENT`, `JSONB` → `TEXT` (parse JSON app-side).
-
 ## API
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/boards` | Create a board (with default columns) |
-| `GET` | `/api/boards/:id` | Get board with nested columns + cards |
+| Method | Endpoint                   | Description                           |
+| ------ | -------------------------- | ------------------------------------- |
+| `POST` | `/api/boards`              | Create a board (with default columns) |
+| `GET`  | `/api/boards/:id`          | Get board with nested columns + cards |
 | `POST` | `/api/boards/:id/commands` | Apply a command (`{ type, payload }`) |
-| `POST` | `/api/boards/:id/undo` | Undo the most recent active action |
-| `POST` | `/api/boards/:id/redo` | Redo the earliest undone action |
+| `POST` | `/api/boards/:id/undo`     | Undo the most recent active action    |
+| `POST` | `/api/boards/:id/redo`     | Redo the earliest undone action       |
 
 ## Command Types
 
-| Command | Forward | Inverse |
-|---|---|---|
-| `AddCardCommand` | Insert card | Delete card |
-| `DeleteCardCommand` | Delete card | Re-insert captured row at original position |
-| `MoveCardCommand` | Update card's column/position | Restore prior column/position |
-| `RenameColumnCommand` | Update column name | Restore prior name |
-| `AddColumnCommand` | Insert column | Delete column |
+| Command               | Forward                       | Inverse                                     |
+| --------------------- | ----------------------------- | ------------------------------------------- |
+| `AddCardCommand`      | Insert card                   | Delete card                                 |
+| `DeleteCardCommand`   | Delete card                   | Re-insert captured row at original position |
+| `MoveCardCommand`     | Update card's column/position | Restore prior column/position               |
+| `RenameColumnCommand` | Update column name            | Restore prior name                          |
+| `AddColumnCommand`    | Insert column                 | Delete column                               |
 
 ## Project Structure
 
@@ -107,6 +106,7 @@ services/
 ```
 
 **Frontend:**
+
 - `useBoard(boardId)` hook → `{ board, canUndo, canRedo, dispatchCommand, undo, redo }`
 - Components: `<Board>`, `<Column>`, `<Card draggable>`, `<AddCardForm>`, `<Toolbar>`, `<LastActionToast>`
 
@@ -141,11 +141,11 @@ npm run dev
 
 ## Status
 
-- [X] Backend scaffold + schema migration
-- [X] `GET /api/boards/:id`
-- [X] Command handlers (add/delete/move card, rename/add column)
-- [X] `POST /api/boards/:id/commands`
-- [X] Undo / Redo endpoints
-- [ ] React board + drag-and-drop
-- [ ] Undo/Redo UI + keyboard shortcuts
+- [x] Backend scaffold + schema migration
+- [x] `GET /api/boards/:id`
+- [x] Command handlers (add/delete/move card, rename/add column)
+- [x] `POST /api/boards/:id/commands`
+- [x] Undo / Redo endpoints
+- [x] React board + drag-and-drop
+- [x] Undo/Redo UI + keyboard shortcuts
 - [ ] Polish (toasts, animations, badge)
