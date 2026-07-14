@@ -4,19 +4,6 @@
 
 A Trello-style Kanban board (columns + draggable cards) where every action — move card, edit card, add column, delete card — is undoable and redoable, per board. Unlike a typical undo/redo implementation, history isn't held in memory: it's persisted as an append-only log table, so it survives a server restart and scales to many boards without keeping everything in process memory.
 
-## Core Idea
-
-Instead of maintaining two in-memory undo/redo stacks, all history lives in a single `action_log` table per board. This works because of one invariant:
-
-> Active rows are always a contiguous prefix of `sequence_number`. Undone rows are always the remaining suffix.
-
-Which means:
-
-- **Undo** = find the active row with `MAX(sequence_number)`
-- **Redo** = find the undone row with `MIN(sequence_number)`
-
-No stack bookkeeping in application code — the table _is_ the stack.
-
 ## Tech Stack
 
 - **Frontend:** React (hooks) + drag-and-drop (`@dnd-kit` or hand-rolled HTML5 DnD)
@@ -81,34 +68,6 @@ CREATE TABLE action_log (
 | `MoveCardCommand`     | Update card's column/position | Restore prior column/position               |
 | `RenameColumnCommand` | Update column name            | Restore prior name                          |
 | `AddColumnCommand`    | Insert column                 | Delete column                               |
-
-## Project Structure
-
-```
-db.js                      — connection pool + query() + transaction() helpers
-
-repositories/
-  boardRepository.js       — createBoard(name), getBoardWithColumnsAndCards(id)
-  actionLogRepository.js   — nextSequenceNumber(boardId, tx), insertEntry(...),
-                              latestActive(boardId), earliestUndone(boardId),
-                              clearUndone(boardId, tx), markUndone(id, tx), markActive(id, tx)
-
-commands/
-  addCard.js                — apply(tx, payload), buildInverse(tx, payload)
-  deleteCard.js              — apply(tx, payload), buildInverse(tx, payload)
-  moveCard.js                — apply(tx, payload), buildInverse(tx, payload)
-  renameColumn.js            — apply(tx, payload), buildInverse(tx, payload)
-  addColumn.js               — apply(tx, payload), buildInverse(tx, payload)
-
-services/
-  commandService.js         — applyCommand(boardId, type, payload), undo(boardId),
-                               redo(boardId) — owns transaction boundaries
-```
-
-**Frontend:**
-
-- `useBoard(boardId)` hook → `{ board, canUndo, canRedo, dispatchCommand, undo, redo }`
-- Components: `<Board>`, `<Column>`, `<Card draggable>`, `<AddCardForm>`, `<Toolbar>`, `<LastActionToast>`
 
 ## Features
 
