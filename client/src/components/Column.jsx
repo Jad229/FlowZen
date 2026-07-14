@@ -3,6 +3,7 @@ import { useDroppable } from "@dnd-kit/react";
 import { CollisionPriority } from "@dnd-kit/abstract";
 import AddCard from "./AddCard";
 import DeleteColumn from "./DeleteColumn";
+import EditColumn from "./EditColumn";
 import Modal from "./Modal";
 import { useState } from "react";
 
@@ -34,8 +35,16 @@ export default function Column({ id, title, cards, sendCommand }) {
     setCardDescription("");
   }
 
+  async function handleEditCard(cardId, { title, description }) {
+    await sendCommand("UPDATE_CARD", { cardId, title, description });
+  }
+
   async function handleDeleteCard(cardId) {
     await sendCommand("DELETE_CARD", { cardId });
+  }
+
+  async function handleEditColumn(newTitle) {
+    await sendCommand("RENAME_COLUMN", { columnId: id, title: newTitle });
   }
 
   async function handleDeleteColumn() {
@@ -55,22 +64,30 @@ export default function Column({ id, title, cards, sendCommand }) {
             card={card}
             columnId={id}
             index={index}
+            onEditCard={(fields) => handleEditCard(card.id, fields)}
             onDeleteCard={() => handleDeleteCard(card.id)}
           />
         ))}
         <AddCard onAddCard={() => setIsAddCardOpen(true)} />
       </div>
-      <DeleteColumn
-        columnTitle={title}
-        onDeleteColumn={handleDeleteColumn}
-      />
+      <div className="column-actions">
+        <EditColumn
+          columnId={id}
+          columnTitle={title}
+          onEditColumn={handleEditColumn}
+        />
+        <DeleteColumn
+          columnTitle={title}
+          onDeleteColumn={handleDeleteColumn}
+        />
+      </div>
       <Modal
         isOpen={isAddCardOpen}
         onClose={() => setIsAddCardOpen(false)}
         title="Add card"
         confirmLabel="Add card"
         onConfirm={handleAddCard}
-        isConfirmDisabled={false}
+        isConfirmDisabled={!cardTitle.trim() || !cardDescription.trim()}
       >
         <label className="modal-label" htmlFor="card-title">
           Title

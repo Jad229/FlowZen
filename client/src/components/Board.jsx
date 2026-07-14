@@ -109,8 +109,6 @@ export default function Board({ boardId }) {
 
   function handleDragOver(event) {
     setBoard((prev) => applyItems(prev, move(toItems(prev), event)));
-    // Keep React as the source of truth — do not let OptimisticSortingPlugin
-    // reparent DOM nodes (that causes removeChild errors on cross-column moves).
     event.preventDefault();
   }
 

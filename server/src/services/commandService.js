@@ -11,8 +11,8 @@ async function boardWithHistory(boardId, tx) {
   return { board, ...history };
 }
 
-// Applies a command against a board inside a single transaction: mutate the
-// board, compute the executable inverse command, then append both the forward
+// Applies a command against a board inside a single transaction mutate the
+// board, compute the inverse command, then append both the forward
 // payload and its inverse to action_log. Returns the updated board + history.
 export async function applyCommand(boardId, type, payload) {
   const handler = commandRegistry[type];
@@ -35,8 +35,6 @@ export async function applyCommand(boardId, type, payload) {
     const ctx = await handler.apply(tx, payload, boardId);
     const inverseCommand = handler.buildInverse(payload, ctx);
 
-    // Include generated ids in the stored forward payload so redo can restore
-    // the exact entity (e.g. ADD_CARD / ADD_COLUMN without an explicit id).
     const storedPayload = { ...payload };
     if (ctx.id != null && storedPayload.id == null) {
       storedPayload.id = ctx.id;
@@ -59,8 +57,7 @@ export async function applyCommand(boardId, type, payload) {
   });
 }
 
-// Undo the most recent active action by executing its stored inverse command.
-// Does not append a new log row — only flips the entry's status to 'undone'.
+
 export async function undo(boardId) {
   return transaction(async (tx) => {
     const boardCheck = await tx.query('SELECT id FROM boards WHERE id = $1', [
@@ -94,8 +91,7 @@ export async function undo(boardId) {
   });
 }
 
-// Redo the earliest undone action by re-applying its original forward command.
-// Does not append a new log row — only flips the entry's status back to 'active'.
+
 export async function redo(boardId) {
   return transaction(async (tx) => {
     const boardCheck = await tx.query('SELECT id FROM boards WHERE id = $1', [
