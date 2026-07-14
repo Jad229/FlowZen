@@ -3,9 +3,17 @@ import { commandRegistry } from '../commands/index.js';
 import * as actionLog from '../repositories/actionLogRepository.js';
 import { getBoardWithColumnsAndCards } from '../repositories/boardRepository.js';
 
+async function boardWithHistory(boardId, tx) {
+  const [board, history] = await Promise.all([
+    getBoardWithColumnsAndCards(boardId, tx),
+    actionLog.getHistoryState(boardId, tx),
+  ]);
+  return { board, ...history };
+}
+
 // Applies a command against a board inside a single transaction: mutate the
 // board, compute the executable inverse command, then append both the forward
-// payload and its inverse to action_log. Returns the updated board.
+// payload and its inverse to action_log. Returns the updated board + history.
 export async function applyCommand(boardId, type, payload) {
   const handler = commandRegistry[type];
   if (!handler) {
@@ -47,7 +55,7 @@ export async function applyCommand(boardId, type, payload) {
       tx
     );
 
-    return getBoardWithColumnsAndCards(boardId, tx);
+    return boardWithHistory(boardId, tx);
   });
 }
 
@@ -82,7 +90,7 @@ export async function undo(boardId) {
     await handler.apply(tx, inverse.payload, boardId);
     await actionLog.markUndone(entry.id, tx);
 
-    return getBoardWithColumnsAndCards(boardId, tx);
+    return boardWithHistory(boardId, tx);
   });
 }
 
@@ -116,6 +124,6 @@ export async function redo(boardId) {
     await handler.apply(tx, entry.payload, boardId);
     await actionLog.markActive(entry.id, tx);
 
-    return getBoardWithColumnsAndCards(boardId, tx);
+    return boardWithHistory(boardId, tx);
   });
 }

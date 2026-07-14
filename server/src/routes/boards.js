@@ -1,5 +1,6 @@
 import { query, transaction } from '../../db/db.js';
 import { getBoardWithColumnsAndCards } from '../repositories/boardRepository.js';
+import { getHistoryState } from '../repositories/actionLogRepository.js';
 
 export const getBoards = async (req, res) => {
     try {
@@ -17,7 +18,8 @@ export const getBoard = async (req, res) => {
         if (!board) {
             return res.status(404).json({ message: 'Board not found' });
         }
-        res.json({ message: 'Board fetched successfully', board });
+        const history = await getHistoryState(id);
+        res.json({ message: 'Board fetched successfully', board, ...history });
     } catch (error) {
         res.status(500).json({ message: 'An error occurred, could not fetch board', error: error.message });
     }

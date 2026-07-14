@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import Column from "./Column";
+import BoardToolbar from "./BoardToolbar";
 import { DragDropProvider } from "@dnd-kit/react";
 import { isSortable } from "@dnd-kit/react/sortable";
 import { move } from "@dnd-kit/helpers";
 import AddColumn from "./AddColumn";
 import Modal from "./Modal";
+import useBoard from "../hooks/useBoard";
 
 function toItems(board) {
   return Object.fromEntries(
@@ -35,28 +37,53 @@ function applyItems(board, items) {
 }
 
 export default function Board({ boardId }) {
-  const [board, setBoard] = useState(null);
+  const {
+    board,
+    setBoard,
+    canUndo,
+    canRedo,
+    activeCount,
+    isMutating,
+    sendCommand,
+    undo,
+    redo,
+  } = useBoard(boardId);
   const [isAddColumnOpen, setIsAddColumnOpen] = useState(false);
   const [columnTitle, setColumnTitle] = useState("");
   const dragSnapshot = useRef(null);
 
   useEffect(() => {
-    if (!boardId) return;
-    let cancelled = false;
+    function handleKeyDown(event) {
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        target.closest("input, textarea, select, [contenteditable=true]")
+      ) {
+        return;
+      }
 
-    async function getBoard() {
-      const response = await fetch(`/api/boards/${boardId}`);
-      if (!response.ok)
-        throw new Error(`Failed to fetch board: ${response.status}`);
-      const data = await response.json();
-      if (!cancelled) setBoard(data.board);
+      const mod = event.ctrlKey || event.metaKey;
+      if (!mod) return;
+
+      if (event.key === "z" || event.key === "Z") {
+        event.preventDefault();
+        if (event.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+        return;
+      }
+
+      if (event.key === "y" || event.key === "Y") {
+        event.preventDefault();
+        redo();
+      }
     }
-    getBoard();
 
-    return () => {
-      cancelled = true;
-    };
-  }, [boardId]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [undo, redo]);
 
   if (!board) return <p>Loading board...</p>;
 
@@ -69,29 +96,12 @@ export default function Board({ boardId }) {
     const title = columnTitle.trim();
     if (!title) return;
 
-    const response = await fetch(`/api/boards/${boardId}/commands`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        type: "ADD_COLUMN",
-        payload: { title, position: board.columns.length },
-      }),
+    await sendCommand("ADD_COLUMN", {
+      title,
+      position: board.columns.length,
     });
-    const { board: updatedBoard } = await response.json();
-
-    setBoard(updatedBoard);
     closeAddColumn();
   };
-
-  async function sendCommand(type, payload) {
-    const response = await fetch(`/api/boards/${boardId}/commands`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type, payload }),
-    });
-    const { board: updatedBoard } = await response.json();
-    setBoard(updatedBoard);
-  }
 
   function handleDragStart() {
     dragSnapshot.current = board;
@@ -153,6 +163,14 @@ export default function Board({ boardId }) {
       <div className="board">
         <header className="board-header">
           <h1 className="board-title">{board.name}</h1>
+          <BoardToolbar
+            canUndo={canUndo}
+            canRedo={canRedo}
+            activeCount={activeCount}
+            isMutating={isMutating}
+            onUndo={undo}
+            onRedo={redo}
+          />
         </header>
         <div className="board-columns">
           {board.columns.map((column) => (

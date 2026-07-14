@@ -28,8 +28,7 @@ export default function DeleteColumn({ columnTitle, onDeleteColumn }) {
       >
         <p className="modal-message">
           Are you sure you want to delete{" "}
-          <strong>{columnTitle}</strong> and all of its cards? This cannot be
-          undone.
+          <strong>{columnTitle}</strong> and all of its cards?
         </p>
       </Modal>
     </>

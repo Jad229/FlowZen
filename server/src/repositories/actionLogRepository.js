@@ -72,3 +72,28 @@ export async function markUndone(id, tx) {
 export async function markActive(id, tx) {
   await runQuery(tx, "UPDATE action_log SET status = 'active' WHERE id = $1", [id]);
 }
+
+export async function getHistoryState(boardId, tx) {
+  const result = await runQuery(
+    tx,
+    `SELECT
+       EXISTS(
+         SELECT 1 FROM action_log WHERE board_id = $1 AND status = 'active'
+       ) AS can_undo,
+       EXISTS(
+         SELECT 1 FROM action_log WHERE board_id = $1 AND status = 'undone'
+       ) AS can_redo,
+       (
+         SELECT COUNT(*)::int FROM action_log
+         WHERE board_id = $1 AND status = 'active'
+       ) AS active_count`,
+    [boardId]
+  );
+
+  const row = result.rows[0];
+  return {
+    canUndo: Boolean(row.can_undo),
+    canRedo: Boolean(row.can_redo),
+    activeCount: row.active_count,
+  };
+}

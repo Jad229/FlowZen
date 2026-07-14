@@ -24,8 +24,8 @@ router.post('/boards/:id/commands', async (req, res) => {
   }
 
   try {
-    const board = await applyCommand(boardId, type, payload)
-    res.json({ message: 'Board command applied successfully', board })
+    const result = await applyCommand(boardId, type, payload)
+    res.json({ message: 'Board command applied successfully', ...result })
   } catch (error) {
     const status = error.status || 500
     res.status(status).json({ message: 'Could not apply command', error: error.message })
@@ -35,8 +35,8 @@ router.post('/boards/:id/undo', async (req, res) => {
   const { id: boardId } = req.params;
 
   try {
-    const board = await undo(boardId);
-    res.json({ message: 'Undo applied successfully', board });
+    const result = await undo(boardId);
+    res.json({ message: 'Undo applied successfully', ...result });
   } catch (error) {
     const status = error.status || 500;
     res.status(status).json({ message: 'Could not undo', error: error.message });
@@ -47,8 +47,8 @@ router.post('/boards/:id/redo', async (req, res) => {
   const { id: boardId } = req.params;
 
   try {
-    const board = await redo(boardId);
-    res.json({ message: 'Redo applied successfully', board });
+    const result = await redo(boardId);
+    res.json({ message: 'Redo applied successfully', ...result });
   } catch (error) {
     const status = error.status || 500;
     res.status(status).json({ message: 'Could not redo', error: error.message });

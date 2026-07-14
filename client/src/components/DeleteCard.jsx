@@ -32,7 +32,7 @@ export default function DeleteCard({ cardTitle, onDeleteCard }) {
       >
         <p className="modal-message">
           Are you sure you want to delete{" "}
-          <strong>{cardTitle}</strong>? This cannot be undone.
+          <strong>{cardTitle}</strong>?
         </p>
       </Modal>
     </>
